@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const pool = require('./db');
+const tosClient = require('./tosClient');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -103,6 +104,56 @@ app.get('/api/journals/:journalId/papers', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch papers' });
+  }
+});
+
+// 查询单篇论文详情 
+app.get('/api/papers/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // 1. 查 paper
+    const result = await pool.query(
+      `
+      SELECT
+        id,
+        title,
+        authors,
+        abstract,
+        volume,
+        issue,
+        doi,
+        keywords,
+        publish_date,
+        pdf_tos_path
+      FROM papers
+      WHERE id = $1 AND is_delete = false
+      `,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Paper not found' });
+    }
+
+    const paper = result.rows[0];
+
+    // 2. 生成 TOS 限时访问 URL（10 分钟）
+    const signedUrl = await tosClient.getPreSignedUrl({
+      bucket: process.env.TOS_BUCKET,
+      key: paper.pdf_tos_path,
+      expires: 600   // 秒
+    });
+
+    // 3. 返回
+    res.json({
+      ...paper,
+      pdf_url: signedUrl
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch paper detail' });
   }
 });
 
