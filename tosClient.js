@@ -9,4 +9,3 @@ const client = new TosClient({
 });
 
 module.exports = client;
-
