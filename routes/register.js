@@ -23,17 +23,29 @@ router.post('/', async (req, res) => {
     );
 
     if (inviteResult.rows.length === 0) {
-      return res.status(400).json({ error: 'Invalid invite code' });
+      return res.status(400).json(
+        { 
+          success: false,
+          error: 'Invalid invite code' 
+        });
     }
 
     const invite = inviteResult.rows[0];
 
     if (invite.is_used) {
-      return res.status(400).json({ error: 'Invite code already used' });
+      return res.status(400).json(
+        { 
+          success: false,
+          error: 'Invite code already used' 
+        });
     }
 
     if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'Invite code expired' });
+      return res.status(400).json(
+        { 
+          success: false,
+          error: 'Invite code expired' 
+        });
     }
 
     // 2. 校验用户名是否存在
@@ -43,7 +55,11 @@ router.post('/', async (req, res) => {
     );
 
     if (userExist.rows.length > 0) {
-      return res.status(400).json({ error: 'Username already exists' });
+      return res.status(400).json(
+        { 
+          success: false,
+          error: 'Username already exists' 
+        });
     }
 
     // 3. 校验手机号是否注册过
@@ -53,7 +69,11 @@ router.post('/', async (req, res) => {
     );
 
     if (phoneExist.rows.length > 0) {
-      return res.status(400).json({ error: 'Phone number already registered' });
+      return res.status(400).json(
+        { 
+          success: false,
+          error: 'Phone number already registered' 
+        });
     }
 
     // 4. 加密密码
@@ -82,11 +102,18 @@ router.post('/', async (req, res) => {
       [userId, invite.id]
     );
 
-    res.json({ message: 'Register success' });
+    res.json({
+      success: true,
+      message: 'Register success' 
+    });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Register failed' });
+    res.status(500).json(
+      { 
+        success: false,
+        error: 'Register failed' 
+      });
   }
 });
 

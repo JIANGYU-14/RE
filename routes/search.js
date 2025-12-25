@@ -62,6 +62,7 @@ router.get('/', authMiddleware, async (req, res) => {
     }
 
     res.json({
+      success: true,
       query: q,
       page,
       pageSize: limit,
@@ -70,7 +71,11 @@ router.get('/', authMiddleware, async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Search failed' });
+    res.status(500).json(
+      { 
+        success: false,
+        error: 'Search failed' 
+      });
   }
 });
 

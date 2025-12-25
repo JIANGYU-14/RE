@@ -9,7 +9,11 @@ router.post('/', async (req, res) => {
   const { phone, password } = req.body;
 
   if (!phone || !password) {
-    return res.status(400).json({ error: 'Phone and password are required' });
+    return res.status(400).json(
+      { 
+        success: false,
+        error: 'Phone and password are required' 
+      });
   }
 
   try {
@@ -24,7 +28,11 @@ router.post('/', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Phone number not registered' });
+      return res.status(401).json(
+        { 
+          success: false,
+          error: 'Phone number not registered' 
+        });
     }
 
     const user = result.rows[0];
@@ -32,7 +40,11 @@ router.post('/', async (req, res) => {
     // 2. 校验密码
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) {
-      return res.status(401).json({ error: 'Incorrect password' });
+      return res.status(401).json(
+        { 
+          success: false,
+          error: 'Incorrect password' 
+        });
     }
 
     // 3. 更新最后登录时间
@@ -52,14 +64,27 @@ router.post('/', async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    res.json({
-      message: 'Login successful',
-      token
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true, 
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000
     });
 
+    console.log('cookies:', req.cookies);
+
+    res.json(
+    {
+      success: true,
+      message: 'Login success'
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Login failed' });
+    res.status(500).json(
+      { 
+        success: false,
+        error: 'Login failed' 
+      });
   }
 });
 

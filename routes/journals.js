@@ -36,6 +36,7 @@ router.get('/', authMiddleware, async (req, res) => {
     );
 
     res.json({
+      success: true,
       page,
       pageSize,
       total: parseInt(countResult.rows[0].total, 10),
@@ -43,7 +44,11 @@ router.get('/', authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to fetch journals' });
+    res.status(500).json(
+      { 
+        success: false,
+        error: 'Failed to fetch journals' 
+      });
   }
 });
 
@@ -89,6 +94,7 @@ router.get('/:journalId/papers', authMiddleware, async (req, res) => {
     );
 
     res.json({
+      success: true,
       page,
       pageSize,
       total: parseInt(countResult.rows[0].total, 10),
@@ -96,7 +102,11 @@ router.get('/:journalId/papers', authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to fetch papers' });
+    res.status(500).json(
+      { 
+        success: false,
+        error: 'Failed to fetch papers' 
+      });
   }
 });
 

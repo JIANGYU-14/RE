@@ -30,7 +30,11 @@ router.get('/:id', authMiddleware, async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Paper not found' });
+      return res.status(404).json(
+        { 
+          success: false,
+          error: 'Paper not found' 
+        });
     }
 
     const paper = result.rows[0];
@@ -44,13 +48,18 @@ router.get('/:id', authMiddleware, async (req, res) => {
 
     // 3. 返回
     res.json({
+      success: true,
       ...paper,
       pdf_url: signedUrl
     });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to fetch paper detail' });
+    res.status(500).json(
+      { 
+        success: false,
+        error: 'Failed to fetch paper detail' 
+      });
   }
 });
 
