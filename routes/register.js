@@ -8,7 +8,11 @@ router.post('/', async (req, res) => {
   const { inviteCode, username, password, phone } = req.body;
 
   if (!inviteCode || !username || !password || !phone) {
-    return res.status(400).json({ error: 'Missing required fields' });
+    return res.status(400).json(
+      { 
+        success: false,
+        error: 'MISSING_REQUIRED_FIELDS' 
+      });
   }
 
   try {
@@ -26,7 +30,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json(
         { 
           success: false,
-          error: 'Invalid invite code' 
+          error: 'INVALID_INVITE_CODE' 
         });
     }
 
@@ -36,15 +40,15 @@ router.post('/', async (req, res) => {
       return res.status(400).json(
         { 
           success: false,
-          error: 'Invite code already used' 
+          error: 'INVITE_CODE_ALREADY_USED' 
         });
     }
 
-    if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
+    if (invite.expired_at && new Date(invite.expired_at) < new Date()) {
       return res.status(400).json(
         { 
           success: false,
-          error: 'Invite code expired' 
+          error: 'INVITE_CODE_EXPIRED' 
         });
     }
 
@@ -58,7 +62,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json(
         { 
           success: false,
-          error: 'Username already exists' 
+          error: 'USERNAME_ALREADY_EXISTS' 
         });
     }
 
@@ -72,7 +76,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json(
         { 
           success: false,
-          error: 'Phone number already registered' 
+          error: 'PHONE_ALREADY_REGISTERED' 
         });
     }
 
@@ -104,7 +108,7 @@ router.post('/', async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Register success' 
+      message: 'REGISTER_SUCCESS' 
     });
 
   } catch (err) {
@@ -112,7 +116,7 @@ router.post('/', async (req, res) => {
     res.status(500).json(
       { 
         success: false,
-        error: 'Register failed' 
+        error: 'REGISTER_FAILED' 
       });
   }
 });

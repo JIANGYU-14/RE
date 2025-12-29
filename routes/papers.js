@@ -33,7 +33,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
       return res.status(404).json(
         { 
           success: false,
-          error: 'Paper not found' 
+          error: 'PAPER_NOT_FOUND' 
         });
     }
 
@@ -58,7 +58,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
     res.status(500).json(
       { 
         success: false,
-        error: 'Failed to fetch paper detail' 
+        error: 'PAPER_DETAIL_FETCH_FAILED' 
       });
   }
 });

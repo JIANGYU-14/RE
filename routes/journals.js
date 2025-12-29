@@ -47,7 +47,7 @@ router.get('/', authMiddleware, async (req, res) => {
     res.status(500).json(
       { 
         success: false,
-        error: 'Failed to fetch journals' 
+        error: 'JOURNAL_LIST_FETCH_FAILED' 
       });
   }
 });
@@ -105,7 +105,7 @@ router.get('/:journalId/papers', authMiddleware, async (req, res) => {
     res.status(500).json(
       { 
         success: false,
-        error: 'Failed to fetch papers' 
+        error: 'PAPER_LIST_FETCH_FAILED' 
       });
   }
 });

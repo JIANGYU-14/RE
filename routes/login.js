@@ -12,7 +12,7 @@ router.post('/', async (req, res) => {
     return res.status(400).json(
       { 
         success: false,
-        error: 'Phone and password are required' 
+        error: 'PHONE_PASSWORD_REQUIRED' 
       });
   }
 
@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
       return res.status(401).json(
         { 
           success: false,
-          error: 'Phone number not registered' 
+          error: 'PHONE_NOT_REGISTERED' 
         });
     }
 
@@ -43,7 +43,7 @@ router.post('/', async (req, res) => {
       return res.status(401).json(
         { 
           success: false,
-          error: 'Incorrect password' 
+          error: 'INCORRECT_PASSWORD' 
         });
     }
 
@@ -71,19 +71,17 @@ router.post('/', async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000
     });
 
-    console.log('cookies:', req.cookies);
-
     res.json(
     {
       success: true,
-      message: 'Login success'
+      message: 'LOGIN_SUCCESS'
     });
   } catch (err) {
     console.error(err);
     res.status(500).json(
       { 
         success: false,
-        error: 'Login failed' 
+        error: 'LOGIN_FAILED' 
       });
   }
 });

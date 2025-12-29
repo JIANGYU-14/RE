@@ -13,6 +13,7 @@ app.use(cookieParser());
 // 路由挂载
 app.use('/api/register', require('./routes/register'));
 app.use('/api/login', require('./routes/login'));
+app.use('/api/me', require('./routes/me'));
 
 app.use('/api/journals', require('./routes/journals'));
 app.use('/api/papers', require('./routes/papers'));

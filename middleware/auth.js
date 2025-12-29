@@ -8,7 +8,7 @@ module.exports = function auth(req, res, next) {
     return res.status(401).json(
       { 
         success: false,
-        error: 'No token' 
+        error: 'NOT_LOGIN' 
       });
   }
 
@@ -20,7 +20,7 @@ module.exports = function auth(req, res, next) {
     return res.status(401).json(
       { 
         success: false,
-        error: 'Invalid token' 
+        error: 'TOKEN_INVALID' 
       });
   }
 };
