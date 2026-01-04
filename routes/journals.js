@@ -62,7 +62,7 @@ router.get('/:journalId/papers', authMiddleware, async (req, res) => {
     const limit = pageSize;
     const offset = (page - 1) * pageSize;
 
-    // 1. 查数据
+    // 1. 查期刊下的文献信息
     const dataResult = await pool.query(
       `
       SELECT
@@ -83,7 +83,7 @@ router.get('/:journalId/papers', authMiddleware, async (req, res) => {
       [journalId, limit, offset]
     );
 
-    // 2. 查总数
+    // 2. 查期刊下的文献总数
     const countResult = await pool.query(
       `
       SELECT COUNT(*) AS total
@@ -93,12 +93,33 @@ router.get('/:journalId/papers', authMiddleware, async (req, res) => {
       [journalId]
     );
 
+    // 3. 查期刊的基本信息
+    const journalInfoResult = await pool.query(
+      `
+      SELECT
+        name,
+        description,
+        publisher,
+        issn,
+        subject,
+        homepage_url,
+        impact_factor
+      FROM journals
+      WHERE id = $1
+      `,
+      [journalId]
+    );
+
+    const journalInfo = journalInfoResult.rows[0];
+
+    // 返回响应
     res.json({
       success: true,
       page,
       pageSize,
       total: parseInt(countResult.rows[0].total, 10),
-      list: dataResult.rows
+      journal: journalInfo, // 期刊信息
+      papers: dataResult.rows // 论文列表
     });
   } catch (err) {
     console.error(err);
