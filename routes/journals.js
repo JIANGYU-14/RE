@@ -3,28 +3,41 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 
-// 分页查询所有期刊
+// 分页 + 关键词查询期刊
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const pageSize = parseInt(req.query.pageSize, 10) || 20;
+    const keyword = req.query.keyword?.trim() || '';
 
     const limit = pageSize;
     const offset = (page - 1) * pageSize;
+
+    // 是否启用关键词过滤
+    const hasKeyword = keyword.length > 0;
 
     // 1. 查数据
     const dataResult = await pool.query(
       `
       SELECT 
-        id, 
-        name, 
-        subject, 
-        description
+        id,
+        name,
+        subject,
+        description,
+        impact_factor
       FROM journals
+      ${hasKeyword ? `
+        WHERE
+          name ILIKE $3
+          OR subject ILIKE $3
+          OR description ILIKE $3
+      ` : ''}
       ORDER BY impact_factor DESC
       LIMIT $1 OFFSET $2
       `,
-      [limit, offset]
+      hasKeyword
+        ? [limit, offset, `%${keyword}%`]
+        : [limit, offset]
     );
 
     // 2. 查总数
@@ -32,7 +45,14 @@ router.get('/', authMiddleware, async (req, res) => {
       `
       SELECT COUNT(*) AS total
       FROM journals
-      `
+      ${hasKeyword ? `
+        WHERE
+          name ILIKE $1
+          OR subject ILIKE $1
+          OR description ILIKE $1
+      ` : ''}
+      `,
+      hasKeyword ? [`%${keyword}%`] : []
     );
 
     res.json({
@@ -42,13 +62,13 @@ router.get('/', authMiddleware, async (req, res) => {
       total: parseInt(countResult.rows[0].total, 10),
       list: dataResult.rows
     });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json(
-      { 
-        success: false,
-        error: 'JOURNAL_LIST_FETCH_FAILED' 
-      });
+    res.status(500).json({
+      success: false,
+      error: 'JOURNAL_LIST_FETCH_FAILED'
+    });
   }
 });
 
@@ -75,7 +95,7 @@ router.get('/:journalId/papers', authMiddleware, async (req, res) => {
         doi,
         keywords,
         publish_date
-      FROM papers
+      FROM papers_temp
       WHERE journal_id = $1
       ORDER BY publish_date DESC
       LIMIT $2 OFFSET $3
@@ -87,7 +107,7 @@ router.get('/:journalId/papers', authMiddleware, async (req, res) => {
     const countResult = await pool.query(
       `
       SELECT COUNT(*) AS total
-      FROM papers
+      FROM papers_temp
       WHERE journal_id = $1
       `,
       [journalId]

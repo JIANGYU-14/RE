@@ -37,7 +37,7 @@ router.get('/', authMiddleware, async (req, res) => {
       const papers = await pool.query(
         `
         SELECT id, title, abstract, authors, journal_id
-        FROM papers
+        FROM papers_temp
         WHERE title ILIKE $1
         ORDER BY publish_date DESC
         LIMIT $2 OFFSET $3
@@ -51,7 +51,7 @@ router.get('/', authMiddleware, async (req, res) => {
       const authors = await pool.query(
         `
         SELECT id, title, authors
-        FROM papers
+        FROM papers_temp
         WHERE authors ILIKE $1
         ORDER BY publish_date DESC
         LIMIT $2 OFFSET $3
