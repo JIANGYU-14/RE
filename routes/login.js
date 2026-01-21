@@ -59,9 +59,14 @@ router.post('/', async (req, res) => {
 
     // 4. 生成 JWT
     const token = jwt.sign(
-      { userId: user.id, phone: user.phone },
+      {  
+        phone: user.phone, 
+        user_id: user.user_id
+      },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' }
+      { 
+        expiresIn: '1d' 
+      }
     );
 
     res.cookie('token', token, {

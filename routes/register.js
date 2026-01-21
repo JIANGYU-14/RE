@@ -2,6 +2,7 @@ const pool = require('../db');
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 // 注册接口
 router.post('/', async (req, res) => {
@@ -83,19 +84,30 @@ router.post('/', async (req, res) => {
     // 4. 加密密码
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // 5. 创建用户
+    // 5. 生成业务 user_id（保证唯一）
+    let userId;
+    while (true) {
+      userId = generateUserId();
+      const check = await pool.query(
+        `SELECT id FROM users WHERE user_id = $1`,
+        [userId]
+      );
+      if (check.rows.length === 0) break;
+    }
+
+    // 6. 创建用户
     const userResult = await pool.query(
       `
-      INSERT INTO users (username, password_hash, phone)
-      VALUES ($1, $2, $3)
-      RETURNING id
+      INSERT INTO users (user_id, username, password_hash, phone)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, user_id
       `,
-      [username, passwordHash, phone]
+      [userId, username, passwordHash, phone]
     );
 
-    const userId = userResult.rows[0].id;
+    const internalId = userResult.rows[0].id;
 
-    // 5. 标记邀请码已使用
+    // 7. 标记邀请码已使用
     await pool.query(
       `
       UPDATE invite_codes
@@ -103,7 +115,7 @@ router.post('/', async (req, res) => {
           used_by = $1
       WHERE id = $2
       `,
-      [userId, invite.id]
+      [internalId, invite.id]
     );
 
     res.json({
@@ -120,5 +132,16 @@ router.post('/', async (req, res) => {
       });
   }
 });
+
+// 生成 8 位小写字母 + 数字的 user_id
+function generateUserId() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const bytes = crypto.randomBytes(8);
+  for (let i = 0; i < 8; i++) {
+    result += chars[bytes[i] % chars.length];
+  }
+  return result;
+}
 
 module.exports = router;

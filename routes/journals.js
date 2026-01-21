@@ -86,20 +86,24 @@ router.get('/:journalId/papers', authMiddleware, async (req, res) => {
     const dataResult = await pool.query(
       `
       SELECT
-        id,
-        title,
-        authors,
-        abstract,
-        volume,
-        issue,
-        doi,
-        keywords,
-        publish_date
-      FROM papers_temp
-      WHERE journal_id = $1
-      ORDER BY publish_date DESC
+        p.id,
+        p.title,
+        p.authors,
+        p.abstract,
+        p.volume,
+        p.issue,
+        p.doi,
+        p.keywords,
+        p.publish_date,
+        j.name AS journal_name
+      FROM papers_temp p
+      JOIN journals j
+        ON p.journal_id = j.id
+      WHERE p.journal_id = $1
+        AND p.is_delete = false
+      ORDER BY p.publish_date DESC
       LIMIT $2 OFFSET $3
-      `, 
+      `,
       [journalId, limit, offset]
     );
 

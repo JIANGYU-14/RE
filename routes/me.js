@@ -10,7 +10,7 @@ router.get('/', authMiddleware, async (req, res) => {
 
     const result = await pool.query(
       `
-      SELECT id, username, phone, last_login_at
+      SELECT id, username, phone, last_login_at, user_id
       FROM users
       WHERE id = $1
       `,
