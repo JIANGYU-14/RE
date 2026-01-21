@@ -20,7 +20,7 @@ router.post('/', async (req, res) => {
     // 1. 查询用户
     const result = await pool.query(
       `
-      SELECT id, phone, password_hash
+      SELECT id, phone, password_hash, user_id
       FROM users
       WHERE phone = $1
       `,
@@ -79,7 +79,10 @@ router.post('/', async (req, res) => {
     res.json(
     {
       success: true,
-      message: 'LOGIN_SUCCESS'
+      message: 'LOGIN_SUCCESS',
+      data: {
+        user_id: user.user_id
+      }
     });
   } catch (err) {
     console.error(err);
