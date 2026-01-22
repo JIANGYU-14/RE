@@ -20,6 +20,8 @@ app.use('/api/journals', require('./routes/journals'));
 app.use('/api/papers', require('./routes/papers'));
 app.use('/api/search', require('./routes/search'));
 
+app.use('/api/agent', require('./routes/agent'));
+
 // 启动服务器
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

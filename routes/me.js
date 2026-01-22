@@ -6,7 +6,7 @@ const pool = require('../db');
 // 当前登录用户信息
 router.get('/', authMiddleware, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const internalId = req.user.id;
 
     const result = await pool.query(
       `
@@ -14,7 +14,7 @@ router.get('/', authMiddleware, async (req, res) => {
       FROM users
       WHERE id = $1
       `,
-      [userId]
+      [internalId]
     );
 
     if (result.rows.length === 0) {
