@@ -22,6 +22,11 @@ app.use('/api/search', require('./routes/search'));
 
 app.use('/api/agent', require('./routes/agent'));
 
+app.use(cors({
+  origin: ['http://www.xiyaokeji.cn'],
+  credentials: true
+}));
+
 // 启动服务器
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
