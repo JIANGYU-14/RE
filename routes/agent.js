@@ -38,7 +38,7 @@ router.post('/sessions', authMiddleware, async (req, res) => {
 });
 
 // 获取用户会话列表
-router.get('/sessions', authMiddleware, async (req, res) => {
+router.get('/sessions/list', authMiddleware, async (req, res) => {
   try {
     const { user_id } = req.user;
 
