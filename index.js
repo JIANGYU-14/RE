@@ -6,7 +6,13 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://www.xiyaokeji.cn',
+    'https://www.xiyaokeji.cn'
+  ],
+  credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -21,11 +27,6 @@ app.use('/api/papers', require('./routes/papers'));
 app.use('/api/search', require('./routes/search'));
 
 app.use('/api/agent', require('./routes/agent'));
-
-app.use(cors({
-  origin: ['http://www.xiyaokeji.cn'],
-  credentials: true
-}));
 
 // 启动服务器
 app.listen(port, () => {
