@@ -6,11 +6,10 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.set('trust proxy', 1);
+
 app.use(cors({
-  origin: [
-    'http://www.xiyaokeji.cn',
-    'https://www.xiyaokeji.cn'
-  ],
+  origin: 'https://www.xiyaokeji.cn',
   credentials: true,
 }));
 app.use(express.json());
