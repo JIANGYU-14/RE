@@ -65,35 +65,41 @@ router.post('/chat', authMiddleware, async (req, res) => {
     const { session_id, text } = req.body;
 
     if (!session_id || !text) {
-      return res.status(400).json({
-        success: false,
-        error: 'MISSING_REQUIRED_FIELDS'
-      });
+      return res.status(400).json({ success: false, error: 'MISSING_REQUIRED_FIELDS' });
     }
 
-    const resp = await agentClient.post('/paperapi/chat', {
+    // 1. 设置响应头，告知前端这是一个 SSE 流
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // 2. 发起请求，注意 responseType 必须为 'stream'
+    const response = await agentClient.post('/paperapi/chat', {
       session_id,
       text
+    }, {
+      responseType: 'stream' 
     });
 
-    res.json({
-      success: true,
-      data: resp.data
+    // 3. 将 Python 接口的流直接管道传输给前端 res
+    response.data.pipe(res);
+
+    // 4. 监听结束和错误
+    response.data.on('error', (err) => {
+      console.error('Stream error:', err);
+      res.end();
     });
+
   } catch (err) {
-    console.error(err.response?.data || err);
-
-    if (err.response?.status === 504) {
-      return res.status(504).json({
-        success: false,
-        error: 'AGENT_TIMEOUT'
-      });
+    console.error('Chat error:', err.message);
+    
+    // 如果还没开始发送流，可以返回 JSON 错误
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: 'AGENT_CHAT_FAILED' });
+    } else {
+      // 如果流已经开始了，只能强制关闭
+      res.end();
     }
-
-    res.status(500).json({
-      success: false,
-      error: 'AGENT_CHAT_FAILED'
-    });
   }
 });
 
