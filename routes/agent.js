@@ -76,15 +76,73 @@ router.get('/sessions/list', authMiddleware, async (req, res) => {
   }
 });
 
-// ---------- 3. 发送消息对话 (流式核心) ----------
+// ---------- 3. 修改会话标题 (PATCH) ----------
+router.patch('/sessions/:sessionId/title', authMiddleware, async (req, res) => {
+  const { sessionId } = req.params;
+  const { title } = req.body;
+  const requestId = `ren_${Date.now().toString().slice(-6)}`;
+
+  log('INFO', requestId, `Attempting to rename session ${sessionId} to: ${title}`);
+
+  try {
+    // 转发请求到 Python 后端
+    const resp = await agentClient.patch(`/paperapi/sessions/${sessionId}/title`, { title });
+    
+    res.json({
+      success: true,
+      data: resp.data
+    });
+  } catch (err) {
+    const status = err.response?.status || 500;
+    const errorData = err.response?.data || err.message;
+    log('ERROR', requestId, `Rename session failed. Status: ${status}`, errorData);
+    
+    res.status(status).json({
+      success: false,
+      error: 'AGENT_SESSION_RENAME_FAILED',
+      detail: errorData
+    });
+  }
+});
+
+// ---------- 4. 删除会话 (DELETE) ----------
+router.delete('/sessions/:sessionId', authMiddleware, async (req, res) => {
+  const { sessionId } = req.params;
+  const { hard } = req.query; // 从 URL query 中获取 ?hard=true
+  const requestId = `del_${Date.now().toString().slice(-6)}`;
+
+  log('INFO', requestId, `Attempting to delete session ${sessionId} (hard=${hard})`);
+
+  try {
+    // 转发请求到 Python 后端，注意 query 参数的传递方式
+    const resp = await agentClient.delete(`/paperapi/sessions/${sessionId}`, {
+      params: { hard: hard === 'true' } 
+    });
+
+    res.json({
+      success: true,
+      data: resp.data
+    });
+  } catch (err) {
+    const status = err.response?.status || 500;
+    log('ERROR', requestId, `Delete session failed: ${err.message}`);
+    
+    res.status(status).json({
+      success: false,
+      error: 'AGENT_SESSION_DELETE_FAILED'
+    });
+  }
+});
+
+// ---------- 5. 发送消息对话 (流式核心) ----------
 router.post('/chat', authMiddleware, async (req, res) => {
   const requestId = `chat_${Date.now().toString().slice(-6)}`;
-  const { session_id, text } = req.body;
+  const { sessionId, text } = req.body;
 
-  log('INFO', requestId, `Chat request received. Session: ${session_id}, Text: "${text.substring(0, 20)}..."`);
+  log('INFO', requestId, `Chat request received. Session: ${sessionId}, Text: "${text.substring(0, 20)}..."`);
 
-  if (!session_id || !text) {
-    log('WARN', requestId, `Validation failed: Missing session_id or text.`);
+  if (!sessionId || !text) {
+    log('WARN', requestId, `Validation failed: Missing sessionId or text.`);
     return res.status(400).json({ success: false, error: 'MISSING_REQUIRED_FIELDS' });
   }
 
@@ -100,7 +158,7 @@ router.post('/chat', authMiddleware, async (req, res) => {
 
     // 2. 向 Python 发起请求
     const response = await agentClient.post('/paperapi/chat', {
-      session_id,
+      sessionId,
       text
     }, {
       responseType: 'stream' // 必须是 stream
@@ -150,7 +208,7 @@ router.post('/chat', authMiddleware, async (req, res) => {
   }
 });
 
-// ---------- 4. 获取会话消息历史 ----------
+// ---------- 6. 获取会话消息历史 ----------
 router.get('/sessions/:sessionId/messages', authMiddleware, async (req, res) => {
   const requestId = `hist_${Date.now().toString().slice(-6)}`;
   const { sessionId } = req.params;
