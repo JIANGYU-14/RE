@@ -137,12 +137,12 @@ router.delete('/sessions/:sessionId', authMiddleware, async (req, res) => {
 // ---------- 5. 发送消息对话 (流式核心) ----------
 router.post('/chat', authMiddleware, async (req, res) => {
   const requestId = `chat_${Date.now().toString().slice(-6)}`;
-  const { sessionId, text } = req.body;
+  const { session_id, text } = req.body;
 
-  log('INFO', requestId, `Chat request received. Session: ${sessionId}, Text: "${text.substring(0, 20)}..."`);
+  log('INFO', requestId, `Chat request received. Session: ${session_id}, Text: "${text.substring(0, 20)}..."`);
 
-  if (!sessionId || !text) {
-    log('WARN', requestId, `Validation failed: Missing sessionId or text.`);
+  if (!session_id || !text) {
+    log('WARN', requestId, `Validation failed: Missing session_id or text.`);
     return res.status(400).json({ success: false, error: 'MISSING_REQUIRED_FIELDS' });
   }
 
@@ -158,7 +158,7 @@ router.post('/chat', authMiddleware, async (req, res) => {
 
     // 2. 向 Python 发起请求
     const response = await agentClient.post('/paperapi/chat', {
-      sessionId,
+      session_id,
       text
     }, {
       responseType: 'stream' // 必须是 stream
